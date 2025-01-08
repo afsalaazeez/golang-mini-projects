@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>bookstore: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">bookstore/books.go (7.0%)</option>
+				
+				<option value="file1">bookstore/main.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "encoding/json"
+        "flag"
+        "fmt"
+        "io/ioutil"
+        "os"
+)
+
+func checkError(err error) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println("Error Happened ", err)
+                os.Exit(1)
+        }</span>
+
+}
+
+// get all the books
+func getBooks() (books []Book) <span class="cov0" title="0">{
+        booksBytes, err := ioutil.ReadFile("./books.json")
+        checkError(err)
+
+        err = json.Unmarshal(booksBytes, &amp;books)
+        checkError(err)
+
+        return books
+
+}</span>
+
+// save books to books.json file
+func saveBooks(books []Book) error <span class="cov8" title="1">{
+
+        // converting into bytes for writing into a file
+        booksBytes, err := json.Marshal(books)
+
+        checkError(err)
+
+        err = ioutil.WriteFile("./books.json", booksBytes, 0644)
+
+        return err
+
+}</span>
+
+// get all the books logic
+func handleGetBooks(getCmd *flag.FlagSet, all *bool, id *string) <span class="cov0" title="0">{
+
+        getCmd.Parse(os.Args[2:])
+
+        // checking for all or id
+        if !*all &amp;&amp; *id == "" </span><span class="cov0" title="0">{
+                fmt.Println("subcommand --all or --id needed")
+                getCmd.PrintDefaults()
+                os.Exit(1)
+        }</span>
+
+        // if for all return all books
+        <span class="cov0" title="0">if *all </span><span class="cov0" title="0">{
+                books := getBooks()
+                fmt.Printf("Id \t Title \t Author \t Price \t ImageURL \n")
+
+                for _, book := range books </span><span class="cov0" title="0">{
+                        fmt.Printf("%v \t %v \t %v \t %v \t %v \n", book.Id, book.Title, book.Author, book.Price, book.Imageurl)
+                }</span>
+        }
+
+        // if id, return only that book
+        // Throw error if book not found
+        <span class="cov0" title="0">if *id != "" </span><span class="cov0" title="0">{
+                books := getBooks()
+                fmt.Printf("Id \t Title \t Author \t Price \t ImageURL \n")
+                // to check a book exist or not
+                var foundBook bool
+                for _, book := range books </span><span class="cov0" title="0">{
+                        foundBook = true
+                        if *id == book.Id </span><span class="cov0" title="0">{
+                                fmt.Printf("%v \t %v \t %v \t %v \t %v \n", book.Id, book.Title, book.Author, book.Price, book.Imageurl)
+                        }</span>
+
+                }
+                // if no book found with mentioned id throws an error
+                <span class="cov0" title="0">if !foundBook </span><span class="cov0" title="0">{
+                        fmt.Println("Book not found")
+                        os.Exit(1)
+                }</span>
+        }
+
+}
+
+// add or update a book logic
+func handleAddBook(addCmd *flag.FlagSet, id, title, author, price, image_url *string, addNewBook bool) <span class="cov0" title="0">{
+        addCmd.Parse(os.Args[2:])
+
+        if *id == "" || *title == "" || *author == "" || *price == "" || *image_url == "" </span><span class="cov0" title="0">{
+                fmt.Println("Please provide book id, title, author,price")
+                addCmd.PrintDefaults()
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">books := getBooks()
+        var newBook Book
+        // to check a book exist or not
+        var foundBook bool
+
+        // checking for add or update
+        if addNewBook </span><span class="cov0" title="0">{
+                newBook = Book{*id, *title, *author, *price, *image_url}
+                books = append(books, newBook)
+        }</span> else<span class="cov0" title="0"> {
+                for i, book := range books </span><span class="cov0" title="0">{
+                        if book.Id == *id </span><span class="cov0" title="0">{
+                                // replace old values with new ones
+                                books[i] = Book{*id, *title, *author, *price, *image_url}
+                                foundBook = true
+                        }</span>
+                }
+
+                // if no book found with mentioned id throws an error
+                <span class="cov0" title="0">if !foundBook </span><span class="cov0" title="0">{
+                        fmt.Println("Book not found")
+                        os.Exit(1)
+                }</span>
+        }
+
+        <span class="cov0" title="0">err := saveBooks(books)
+
+        checkError(err)
+
+        fmt.Println("Book added successfully")</span>
+
+}
+
+func handleDeleteBook(deleteCmd *flag.FlagSet, id *string) <span class="cov0" title="0">{
+
+        deleteCmd.Parse(os.Args[2:])
+
+        if *id == "" </span><span class="cov0" title="0">{
+                fmt.Println("Please provide book --id")
+                deleteCmd.PrintDefaults()
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">books := getBooks()
+        var foundBook bool
+
+        for i, book := range books </span><span class="cov0" title="0">{
+                if book.Id == *id </span><span class="cov0" title="0">{
+                        // There is no direct delete
+                        // so creating 2 books structs without the targeted book and appending
+                        books = append(books[:i], books[i+1:]...)
+                        foundBook = true
+                }</span>
+        }
+
+        // if no book found with mentioned id throws an error
+        <span class="cov0" title="0">if !foundBook </span><span class="cov0" title="0">{
+                fmt.Println("Book not found")
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">err := saveBooks(books)
+
+        checkError(err)
+
+        fmt.Println("Book deleted successfully")</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "flag"
+        "fmt"
+        "os"
+)
+
+// struct based on books.json file. Please refer
+type Book struct {
+        Id       string `json:"id"`
+        Title    string `json:"title"`
+        Author   string `json:"author"`
+        Price    string `json:"price"`
+        Imageurl string `json:"image_url"`
+}
+
+func main() <span class="cov0" title="0">{
+        /*
+                get books --all or --id
+                ./bookstore get --all
+                ./bookstore get --id 5
+        */
+        getCmd := flag.NewFlagSet("get", flag.ExitOnError)
+        getAll := getCmd.Bool("all", false, "List all the books")
+        getId := getCmd.String("id", "", "Get book by id")
+
+        /*
+                add a book with id ,title, author, price, image_url
+                ./bookstore add --id 6 --title test-book --author akilan --price 200 --image_url http://akilan.com/test.png
+        */
+
+        addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+        addId := addCmd.String("id", "", "Book id")
+        addTitle := addCmd.String("title", "", "Book title")
+        addAuthor := addCmd.String("author", "", "Book author")
+        addPrice := addCmd.String("price", "", "Book price")
+        addImageUrl := addCmd.String("image_url", "", "Book image URL")
+
+        /*
+                update a book with id ,title, author, price, image_url
+                ./bookstore update --id 6 --title test-book-1 --author akilan1 --price 2001 --image_url http://akilan.com/test.png1
+        */
+
+        updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
+        updateId := updateCmd.String("id", "", "Book id")
+        updateTitle := updateCmd.String("title", "", "Book title")
+        updateAuthor := updateCmd.String("author", "", "Book author")
+        updatePrice := updateCmd.String("price", "", "Book price")
+        updateImageUrl := updateCmd.String("image_url", "", "Book image URL")
+
+        /*
+                delete a book by --id
+                ./bookstore delete --id 6
+        */
+        deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
+        deleteId := deleteCmd.String("id", "", "Delete book by id")
+
+        // validation
+        if len(os.Args) &lt; 2 </span><span class="cov0" title="0">{
+                fmt.Println("Expected get, add, update, delete commands")
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">switch os.Args[1] </span>{
+        case "get":<span class="cov0" title="0">
+                handleGetBooks(getCmd, getAll, getId)</span>
+        case "add":<span class="cov0" title="0">
+                handleAddBook(addCmd, addId, addTitle, addAuthor, addPrice, addImageUrl, true)</span>
+        case "update":<span class="cov0" title="0">
+                handleAddBook(updateCmd, updateId, updateTitle, updateAuthor, updatePrice, updateImageUrl, false)</span>
+        case "delete":<span class="cov0" title="0">
+                handleDeleteBook(deleteCmd, deleteId)</span>
+        default:<span class="cov0" title="0">
+                fmt.Println("Please provide get, update, update, delete commands")
+                os.Exit(1)</span>
+        }
+
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
