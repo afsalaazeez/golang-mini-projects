@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>monitor-agent: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">monitor-agent/info.go (0.0%)</option>
+				
+				<option value="file1">monitor-agent/main.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "log"
+        "time"
+
+        "github.com/shirou/gopsutil/cpu"
+        "github.com/shirou/gopsutil/host"
+        "github.com/shirou/gopsutil/mem"
+)
+
+// print logs in console
+func checkError(err error) <span class="cov0" title="0">{
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("Error - %v", err)
+        }</span>
+
+}
+
+// Get memory info
+// It returns total, free memory in MB and used memory percentage
+func getMemInfo() (uint64, uint64, float64) <span class="cov0" title="0">{
+
+        v, _ := mem.VirtualMemory()
+
+        totalMemory := v.Total / 1000000      //in MB
+        freeMemory := v.Free / 1000000        // in MB
+        usedMemoryPercentage := v.UsedPercent // in %
+
+        return totalMemory, freeMemory, usedMemoryPercentage
+}</span>
+
+// get host info
+// It returns  hostName, architecture, operationSystem
+func getHostInfo() (string, string, string) <span class="cov0" title="0">{
+
+        architecture, _ := host.KernelArch()
+        hostInfo, _ := host.Info()
+        hostName := hostInfo.Hostname
+        operationSystem := hostInfo.OS
+        return hostName, architecture, operationSystem
+}</span>
+
+// get cpu info
+// it returns cpuNumCores, cpuPercentage
+func getCpuInfo() (int, float64) <span class="cov0" title="0">{
+
+        cpuNumCores, _ := cpu.Counts(true)
+
+        cpuPercentage, _ := cpu.Percent(time.Second, false)
+
+        return cpuNumCores, cpuPercentage[0]
+
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "encoding/json"
+        "fmt"
+        "log"
+        "net/http"
+)
+
+// define port
+const PORT string = ":8080"
+
+// define system info type
+
+type systemInfo struct {
+        HostName             string  `json:"hostname"`
+        TotalMemory          uint64  `json:"total_memory"`
+        FreeMemory           uint64  `json:"free_memory"`
+        MemoryUsedPercentage float64 `json:"memory_used_percentage"`
+        Architecture         string  `json:"architecture"`
+        OperationSystem      string  `json:"os"`
+        NumberOfCpuCores     int     `json:"number_of_cpu_cores"`
+        CpuUsedPercentage    float64 `json:"cpu_used_percentage"`
+}
+
+// main function starts here
+func main() <span class="cov0" title="0">{
+
+        // http://localhost:8080
+        http.HandleFunc("/", getSysInfo)
+
+        fmt.Printf("App is listening on %v\n", PORT)
+        err := http.ListenAndServe(PORT, nil)
+        // stop the app is any error to start the server
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+}
+
+func getSysInfo(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+
+        totalMemory, freeMemory, usedMemoryPercentage := getMemInfo()
+        hostName, architecture, operationSystem := getHostInfo()
+        cpuNumCores, cpuPercentage := getCpuInfo()
+        // all system info as systemInfo struct
+        sysInfo := systemInfo{
+                hostName,
+                totalMemory,
+                freeMemory,
+                usedMemoryPercentage,
+                architecture,
+                operationSystem,
+                cpuNumCores,
+                cpuPercentage,
+        }
+
+        // converting into bytes for writing as response
+        sysInfoByte, err := json.Marshal(sysInfo)
+
+        // capture error
+        checkError(err)
+
+        //write into response body
+        w.Write(sysInfoByte)
+
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
